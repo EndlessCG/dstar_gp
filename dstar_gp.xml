@@ -1,0 +1,5 @@
+<library path="lib/libdstar_gp">
+	<class name="dstar_gp/DstarGP" type="dstar_gp::DstarGP" base_class_type="nav_core::BaseGlobalPlanner">
+		<description>Dstar global planner plugin!</description>
+	</class>
+</library>

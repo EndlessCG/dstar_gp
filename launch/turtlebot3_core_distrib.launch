@@ -1,0 +1,14 @@
+<launch>
+  <arg name="multi_robot_name" default=""/>
+  <arg name="turtlebot_address" default="192.168.43.96"/>
+  <arg name="turtlebot_user" default="root"/>
+  <arg name="turtlebot_password" default="123456"/>
+  <arg name="env_loader_path" default="/opt/env_setup.bash"/>
+  <machine name="turtlebot" address="$(arg turtlebot_address)" user="$(arg turtlebot_user)" password="$(arg turtlebot_password)" env-loader="$(arg env_loader_path)"/>
+
+  <node machine="turtlebot" pkg="rosserial_python" type="serial_node.py" name="turtlebot3_core" output="screen">
+    <param name="port" value="/dev/ttyACM0"/>
+    <param name="baud" value="115200"/>
+    <param name="tf_prefix" value="$(arg multi_robot_name)"/>
+  </node>
+</launch>

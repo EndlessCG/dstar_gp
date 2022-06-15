@@ -1,0 +1,56 @@
+<launch>
+    <arg name="turtlebot_address" default="192.168.43.96" />
+    <arg name="turtlebot_user" default="root" />
+    <arg name="turtlebot_password" default="123456" />
+    <arg name="env_loader_path" default="/opt/env_setup.bash" />
+    <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]" />
+    <arg name="multi_robot_name" default="" />
+    <arg name="use_turtlebot" default="false" />
+    <arg name="enable_slam" default="true" />
+    <arg name="enable_ekf" default="false" />
+    <arg name="slam_methods" default="hector" />
+
+    <arg name="map_file" default="$(env HOME)/Desktop/home_test.yaml" />
+    <arg name="open_rviz" default="true" />
+    <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro' prefix:=$(arg multi_robot_name)" />
+    <!-- Map server -->
+    <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" /> -->
+    <!-- Localization -->
+    <!-- <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/> -->
+
+    <!-- Move base -->
+    <include file="$(find turtlebot3_navigation)/launch/move_base.launch" />
+    <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0 0 0.0 /map /odom 100"/> -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="laser_localizer" args="0.0 0.0 0.0 0 0 0.0 /base_scan /laser 50" /> -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+    </node>
+
+    <group if="$(arg open_rviz)">
+        <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz" />
+    </group>
+    <group if="$(arg use_turtlebot)">
+        <include file="$(find dstar_gp)/launch/turtlebot3_robot_distrib.launch">
+            <arg name="turtlebot_address" value="$(arg turtlebot_address)" />
+            <arg name="turtlebot_user" value="$(arg turtlebot_user)" />
+            <arg name="turtlebot_password" value="$(arg turtlebot_password)" />
+            <arg name="env_loader_path" value="$(arg env_loader_path)" />
+            <arg name="use_turtlebot" value="$(arg use_turtlebot)" />
+        </include>
+    </group>
+    <group if="$(arg enable_slam)">
+        <include file="$(find turtlebot3_slam)/launch/turtlebot3_$(arg slam_methods).launch" />
+    </group>
+    <group if="$(arg enable_ekf)">
+        <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+            <param name="output_frame" value="odom" />
+            <param name="freq" value="30.0" />
+            <param name="sensor_timeout" value="1.0" />
+            <param name="odom_used" value="true" />
+            <param name="imu_used" value="true" />
+            <param name="vo_used" value="false" />
+            <param name="debug" value="false" />
+            <param name="self_diagnose" value="false" />
+        </node>
+    </group>
+</launch>
